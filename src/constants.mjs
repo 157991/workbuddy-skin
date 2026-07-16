@@ -13,13 +13,11 @@ export const EXPECTED_BUNDLE_ID = "com.workbuddy.workbuddy";
 export const RENDERER_URL_HINT = "renderer/index.html";
 
 export function resolveStudioPaths({ home = homedir() } = {}) {
+  const isWin = process.platform === "win32";
   const installRoot = join(home, ".workbuddy", PRODUCT_ID);
-  const stateRoot = join(
-    home,
-    "Library",
-    "Application Support",
-    "WorkBuddySkinStudio",
-  );
+  const stateRoot = isWin
+    ? join(process.env.LOCALAPPDATA || join(home, "AppData", "Local"), "WorkBuddySkinStudio")
+    : join(home, "Library", "Application Support", "WorkBuddySkinStudio");
 
   return {
     installRoot,

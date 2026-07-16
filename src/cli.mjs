@@ -3,7 +3,7 @@ import { access } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { DEFAULT_CDP_PORT, DEFAULT_THEME_ID, EXPECTED_BUNDLE_ID, resolveStudioPaths } from "./constants.mjs";
+import { DEFAULT_CDP_PORT, DEFAULT_THEME_ID, EXPECTED_BUNDLE_ID, RENDERER_URL_HINT, resolveStudioPaths } from "./constants.mjs";
 import { applySkin, removeSkin, skinStatus } from "./injector.mjs";
 import { loadTheme } from "./theme-schema.mjs";
 import { createSingleImageTheme, listThemes } from "./theme-store.mjs";
@@ -86,14 +86,37 @@ export async function runCli(argv, overrides = {}) {
   }
   if (command === "status") return deps.skinStatus({ port: portFrom(args.port) });
   if (command === "doctor") {
-    const app = "/Applications/WorkBuddy.app";
     const exists = async (path) => access(path).then(() => true, () => false);
+    if (process.platform === "win32") {
+      const candidates = [
+        process.env.WORKBUDDY_EXE,
+        process.env.LOCALAPPDATA && join(process.env.LOCALAPPDATA, "workbuddy", "WorkBuddy.exe"),
+        process.env.LOCALAPPDATA && join(process.env.LOCALAPPDATA, "Programs", "workbuddy", "WorkBuddy.exe"),
+        process.env.ProgramFiles && join(process.env.ProgramFiles, "WorkBuddy", "WorkBuddy.exe"),
+        process.env["ProgramFiles(x86)"] && join(process.env["ProgramFiles(x86)"], "WorkBuddy", "WorkBuddy.exe"),
+      ].filter(Boolean);
+      let app = null;
+      for (const c of candidates) {
+        if (await exists(c)) { app = c; break; }
+      }
+      return {
+        platform: "win32",
+        app,
+        appFound: !!app,
+        candidates,
+        cdpPort: DEFAULT_CDP_PORT,
+        rendererHint: RENDERER_URL_HINT,
+        installRoot: resolveStudioPaths().installRoot,
+      };
+    }
+    const app = "/Applications/WorkBuddy.app";
     return {
+      platform: "darwin",
       app,
       appFound: await exists(app),
       bundleId: EXPECTED_BUNDLE_ID,
       cdpPort: DEFAULT_CDP_PORT,
-      rendererHint: "renderer/index.html",
+      rendererHint: RENDERER_URL_HINT,
       installRoot: resolveStudioPaths().installRoot,
     };
   }
