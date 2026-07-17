@@ -1,0 +1,16 @@
+﻿{
+  "schemaVersion": 1,
+  "id": "flame-forward",
+  "name": "火焰 · 前进",
+  "hero": "hero.png",
+  "colors": {
+    "accent": "#FF7A00",
+    "secondary": "#FFD166",
+    "surface": "#1A0500",
+    "text": "#FFE8C0"
+  },
+  "copy": {
+    "brand": "IGNITE · FORGE · ASCEND",
+    "headline": "薪火向前，每一步都是进化。"
+  }
+}
